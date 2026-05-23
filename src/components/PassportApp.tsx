@@ -20,11 +20,33 @@ const initialForm: SkuInput = {
   hasResponsiblePerson: false, hasSafetyDocumentation: false, hasLocalizedLabel: false, hasIossOrVat: false, hasTraceabilityInfo: false,
 };
 
+type LeadForm = {
+  company: string;
+  name: string;
+  email: string;
+  website: string;
+  monthlySku: string;
+  targetMarket: string;
+  message: string;
+};
+
+const initialLeadForm: LeadForm = {
+  company: '',
+  name: '',
+  email: '',
+  website: '',
+  monthlySku: '1-50',
+  targetMarket: 'EU/UK',
+  message: '',
+};
+
 export function PassportApp() {
   const [passports, setPassports] = useState<PassportDTO[]>(() => PassportStorage.load());
   const [selectedId, setSelectedId] = useState(passports[0]?.id ?? '');
   const [form, setForm] = useState<SkuInput>(initialForm);
+  const [leadForm, setLeadForm] = useState<LeadForm>(initialLeadForm);
   const [message, setMessage] = useState('');
+  const [leadMessage, setLeadMessage] = useState('');
   const selected = passports.find((item) => item.id === selectedId) ?? passports[0];
   const portfolio = useMemo(() => analytics.calculatePortfolio(passports), [passports]);
 
@@ -78,17 +100,31 @@ export function PassportApp() {
     setMessage('デモデータを初期化しました。');
   };
 
+  const submitLead = (purpose: 'diagnosis' | 'waitlist') => {
+    if (!leadForm.name || !leadForm.email) {
+      setLeadMessage('お名前とメールアドレスを入力してください。');
+      return;
+    }
+    const saved = JSON.parse(window.localStorage.getItem('passportos-leads') ?? '[]') as Array<LeadForm & { id: string; purpose: string; createdAt: string }>;
+    saved.unshift({ ...leadForm, id: crypto.randomUUID(), purpose, createdAt: new Date().toISOString() });
+    window.localStorage.setItem('passportos-leads', JSON.stringify(saved.slice(0, 30)));
+    setLeadMessage(purpose === 'diagnosis' ? '無料診断リクエストを保存しました。次の本番化でDB・メール通知に接続できます。' : '事前登録を受け付けました。');
+    setLeadForm(initialLeadForm);
+  };
+
   return (
     <main>
+      <TopNav />
       <Hero />
+      <CommercialSections />
       <section className="container appShell" id="demo">
         <aside className="sidebar card" aria-label="SKU一覧">
           <div className="sideHead">
-            <span className="badge">Workspace</span>
+            <span className="badge">Live MVP</span>
             <button className="btn ghost small" onClick={reset}>Reset</button>
           </div>
-          <h2>Launch Control</h2>
-          <p>EU/UK向けに販売するSKUを、必要物・期限・証跡単位で管理します。</p>
+          <h2>商品別リスク管理</h2>
+          <p>EU/UK向けに販売する商品を、必要書類・期限・証跡単位で管理します。</p>
           <div className="skuList">
             {passports.map((passport) => (
               <button key={passport.id} className={`skuItem ${passport.id === selected?.id ? 'active' : ''}`} onClick={() => setSelectedId(passport.id)}>
@@ -107,30 +143,80 @@ export function PassportApp() {
           <SkuForm form={form} onChange={setForm} onCreate={createSku} />
         </section>
       </section>
+      <LeadSection leadForm={leadForm} setLeadForm={setLeadForm} leadMessage={leadMessage} onSubmit={submitLead} />
+      <PricingSection />
+      <ArchitectureSection />
     </main>
+  );
+}
+
+function TopNav() {
+  return (
+    <header className="topNav">
+      <a className="brand" href="#top" aria-label="PassportOS home"><span>Passport</span>OS</a>
+      <nav>
+        <a href="#demo">デモ</a>
+        <a href="#diagnosis">無料診断</a>
+        <a href="#pricing">料金</a>
+        <a href="#architecture">本番化</a>
+      </nav>
+      <a className="btn small" href="#diagnosis">事前登録</a>
+    </header>
   );
 }
 
 function Hero() {
   return (
-    <section className="hero">
+    <section className="hero" id="top">
       <div className="container heroGrid">
         <div>
-          <span className="badge">Japan-first RegOps SaaS MVP</span>
-          <h1>SKUごとに、<br />海外販売の「止まるリスク」を見える化する。</h1>
-          <p className="lead">PassportOSは、EU/UK向け越境ECの責任者情報、ラベル、IOSS/VAT、証跡、期限を一つのLaunch Packに統合する業務OSです。</p>
+          <span className="badge darkBadge">越境ECの出品停止を防ぐ 商品別チェックSaaS</span>
+          <h1>海外販売の準備を、<br />商品ごとに一画面で。</h1>
+          <p className="lead">PassportOSは、EU/UKに商品を売る前に必要な「責任者情報・ラベル表示・証跡書類・IOSS/VAT・更新期限」をまとめて管理する、越境EC向けRegOpsプラットフォームです。</p>
           <div className="heroActions">
-            <a className="btn" href="#demo">MVPを操作する</a>
-            <a className="btn secondary" href="#architecture">設計を見る</a>
+            <a className="btn" href="#diagnosis">無料で販売準備を診断する</a>
+            <a className="btn secondary" href="#demo">デモを操作する</a>
+          </div>
+          <div className="heroProof">
+            <span>SKU単位</span><span>EU/UK対応</span><span>証跡管理</span><span>期限通知</span><span>Stripe課金準備</span>
           </div>
         </div>
-        <div className="heroPanel card" aria-label="リスク概要">
-          <div className="riskOrbit"><span>GPSR</span><span>IOSS</span><span>Evidence</span><span>Deadline</span></div>
-          <h3>Launch Readiness</h3>
-          <p>販売可否・不足項目・提出証跡・期限をSKU単位で追跡。</p>
+        <div className="heroPanel card" aria-label="PassportOS dashboard preview">
+          <div className="panelTop"><span>Launch Readiness</span><strong>73%</strong></div>
+          <div className="riskOrbit"><span>責任者</span><span>ラベル</span><span>証跡</span><span>期限</span></div>
+          <h3>「売れるか」より先に、<br />「止まらず売れるか」を確認。</h3>
+          <p>商品・国・販売チャネルごとに、足りない準備を可視化します。</p>
         </div>
       </div>
     </section>
+  );
+}
+
+function CommercialSections() {
+  const problems = [
+    ['出品停止リスク', 'モール規約や現地規制の見落としで、突然リスティングが止まる。'],
+    ['書類が分散', 'Drive、メール、Excel、税理士資料が散らばり、提出時に探せない。'],
+    ['期限管理が属人化', '更新日、ラベル修正、証跡差し替えが担当者の記憶に依存する。'],
+  ];
+  const benefits = [
+    ['一般向けにわかる', '「この商品は何が足りないか」を非専門家でも判断できるUI。'],
+    ['専門家にも渡せる', '根拠URL、証跡、期限、変更履歴をLaunch Packとして整理。'],
+    ['継続課金に向く', 'SKU・市場・期限が増えるほど価値が上がる業務基盤。'],
+  ];
+  return (
+    <>
+      <section className="container splitSection">
+        <div>
+          <span className="badge">Why now</span>
+          <h2>越境ECで本当に怖いのは、売れないことではなく「売れ始めてから止まること」です。</h2>
+          <p>PassportOSは、海外販売の面倒な確認作業を「商品別パスポート」に変換します。専門用語に詳しくない担当者でも、次に何をすべきかが分かります。</p>
+        </div>
+        <div className="cards3">{problems.map(([title, body]) => <div className="miniCard" key={title}><strong>{title}</strong><span>{body}</span></div>)}</div>
+      </section>
+      <section className="container valueGrid">
+        {benefits.map(([title, body]) => <div className="card valueCard" key={title}><span className="badge">Value</span><h3>{title}</h3><p>{body}</p></div>)}
+      </section>
+    </>
   );
 }
 
@@ -154,15 +240,15 @@ function PassportDetail({ passport, onAddEvidence, onExport }: { passport: Passp
           <h2>{passport.sku.name}</h2>
           <p>{passport.sku.skuCode} / Origin: {passport.sku.originCountry}</p>
         </div>
-        <div className="score"><strong>{passport.summary.readinessScore}%</strong><span>準備率</span></div>
+        <div className="score"><strong>{passport.summary.readinessScore}%</strong><span>販売準備率</span></div>
       </div>
       <div className="actionBar">
         <button className="btn" onClick={onExport}>Launch Pack JSONを書き出す</button>
-        <span className="legalNote">※本MVPは業務管理用です。最終的な法的判断は専門家レビュー前提。</span>
+        <span className="legalNote">※業務管理用MVPです。最終的な法的判断は専門家レビューを前提にしてください。</span>
       </div>
       <div className="tableWrap">
         <table>
-          <thead><tr><th>要件</th><th>状態</th><th>リスク</th><th>期限</th><th>根拠</th><th>操作</th></tr></thead>
+          <thead><tr><th>必要な準備</th><th>状態</th><th>リスク</th><th>期限</th><th>根拠</th><th>次のアクション</th></tr></thead>
           <tbody>
             {passport.requirements.map((req) => (
               <tr key={req.id}>
@@ -192,7 +278,7 @@ function SkuForm({ form, onChange, onCreate }: { form: SkuInput; onChange: (next
   ];
   return (
     <section className="card formCard">
-      <div><span className="badge">New SKU</span><h2>SKUパスポートを作成</h2></div>
+      <div><span className="badge">Free checker</span><h2>商品パスポートを作成</h2><p>商品名と販売先を入れると、足りない準備を自動で整理します。</p></div>
       <div className="formGrid">
         <label>商品名<input value={form.name} onChange={(e) => set('name', e.target.value)} placeholder="例：Smart Kitchen Timer" /></label>
         <label>SKUコード<input value={form.skuCode} onChange={(e) => set('skuCode', e.target.value)} placeholder="例：JP-ELC-001" /></label>
@@ -203,6 +289,70 @@ function SkuForm({ form, onChange, onCreate }: { form: SkuInput; onChange: (next
       </div>
       <div className="checkGrid">{flags.map(([key, label]) => <label key={key as string} className="check"><input type="checkbox" checked={Boolean(form[key])} onChange={(e) => set(key, e.target.checked as never)} />{label}</label>)}</div>
       <button className="btn" onClick={onCreate}>不足要件を自動生成</button>
+    </section>
+  );
+}
+
+function LeadSection({ leadForm, setLeadForm, leadMessage, onSubmit }: { leadForm: LeadForm; setLeadForm: (next: LeadForm) => void; leadMessage: string; onSubmit: (purpose: 'diagnosis' | 'waitlist') => void }) {
+  const set = <K extends keyof LeadForm>(key: K, value: LeadForm[K]) => setLeadForm({ ...leadForm, [key]: value });
+  return (
+    <section className="leadSection" id="diagnosis">
+      <div className="container leadGrid">
+        <div>
+          <span className="badge darkBadge">無料診断・事前登録</span>
+          <h2>まずは1商品だけ、海外販売の準備不足を無料で見える化。</h2>
+          <p>本番版では、ここからDB保存、メール通知、専門家レビュー、Stripe課金へ接続します。現在はMVPとしてブラウザ内に安全保存します。</p>
+          <ul className="checkList"><li>商品ごとの不足項目を整理</li><li>販売停止につながる重大リスクを確認</li><li>有料プラン導入前の事前相談に対応</li></ul>
+        </div>
+        <form className="card leadForm" onSubmit={(e) => { e.preventDefault(); onSubmit('diagnosis'); }}>
+          <label>会社名・屋号<input value={leadForm.company} onChange={(e) => set('company', e.target.value)} placeholder="例：TOSHIMA Trading" /></label>
+          <label>お名前<input value={leadForm.name} onChange={(e) => set('name', e.target.value)} placeholder="例：戸島 龍司" /></label>
+          <label>メールアドレス<input type="email" value={leadForm.email} onChange={(e) => set('email', e.target.value)} placeholder="you@example.com" /></label>
+          <label>Webサイト・販売ページ<input value={leadForm.website} onChange={(e) => set('website', e.target.value)} placeholder="https://" /></label>
+          <div className="formGrid two">
+            <label>SKU数<select value={leadForm.monthlySku} onChange={(e) => set('monthlySku', e.target.value)}><option>1-50</option><option>51-250</option><option>251-1000</option><option>1000+</option></select></label>
+            <label>販売予定市場<select value={leadForm.targetMarket} onChange={(e) => set('targetMarket', e.target.value)}><option>EU/UK</option><option>EU</option><option>UK</option><option>US</option><option>Global</option></select></label>
+          </div>
+          <label>相談内容<textarea value={leadForm.message} onChange={(e) => set('message', e.target.value)} placeholder="例：ShopifyでEU向けに販売予定。ラベルと責任者情報が不安。" /></label>
+          {leadMessage && <div className="notice">{leadMessage}</div>}
+          <div className="leadActions"><button className="btn" type="submit">無料診断を依頼する</button><button className="btn secondary" type="button" onClick={() => onSubmit('waitlist')}>事前登録する</button></div>
+        </form>
+      </div>
+    </section>
+  );
+}
+
+function PricingSection() {
+  const plans = [
+    ['Starter', '¥29,800', '少量SKUの越境テスト', ['50 SKU', '2市場', '基本チェック', '期限管理']],
+    ['Growth', '¥79,800', 'D2C・中小メーカー向け', ['250 SKU', '5市場', '提出物生成', 'チーム権限']],
+    ['Scale', '¥198,000', '支援会社・複数ブランド向け', ['1,000 SKU', '10市場', '監査証跡', '承認フロー']],
+  ];
+  return (
+    <section className="container pricing" id="pricing">
+      <div className="sectionHead"><span className="badge">Pricing ready</span><h2>Stripe課金を前提にした料金設計</h2><p>本番化時はStripe Billingに接続し、SKU数・市場数に応じた継続課金へ移行できます。</p></div>
+      <div className="priceGrid">{plans.map(([name, price, desc, items]) => <div className="card priceCard" key={name as string}><h3>{name}</h3><strong>{price}<small>/月</small></strong><p>{desc as string}</p><ul>{(items as string[]).map((item) => <li key={item}>{item}</li>)}</ul><a className="btn secondary" href="#diagnosis">このプランで相談</a></div>)}</div>
+    </section>
+  );
+}
+
+function ArchitectureSection() {
+  return (
+    <section className="architecture" id="architecture">
+      <div className="container archGrid">
+        <div>
+          <span className="badge darkBadge">Production ready path</span>
+          <h2>本番用DB化までの土台を用意済み。</h2>
+          <p>現在はMVPとしてlocalStorageで動作します。次フェーズでは、認証、Postgres、証跡ファイル、Stripe、メール通知へ段階的に接続できます。</p>
+        </div>
+        <div className="archSteps">
+          <div><strong>01</strong><span>Auth.jsでログイン・組織管理</span></div>
+          <div><strong>02</strong><span>Neon PostgresでSKU・証跡・期限を保存</span></div>
+          <div><strong>03</strong><span>Vercel Blobで提出書類を保管</span></div>
+          <div><strong>04</strong><span>Stripe Billingで月額課金</span></div>
+          <div><strong>05</strong><span>Resendで診断依頼・期限通知</span></div>
+        </div>
+      </div>
     </section>
   );
 }
