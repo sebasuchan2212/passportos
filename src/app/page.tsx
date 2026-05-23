@@ -1,5 +1,5 @@
-import { PassportApp } from '@/components/PassportApp';
+import { SalesLanding } from '@/components/SalesLanding';
 
 export default function Home() {
-  return <PassportApp />;
+  return <SalesLanding />;
 }
