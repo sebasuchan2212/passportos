@@ -2,8 +2,8 @@ import type { Metadata } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'PassportOS | SKU Launch Readiness SaaS',
-  description: 'SKU単位で越境ECの規制タスク・証跡・期限を管理するRegOps SaaS MVP',
+  title: 'EU/UK向け海外販売の準備を、商品ごとに一画面で | PassportOS',
+  description: 'GPSR、EU責任者情報、VAT/IOSS、提出証跡、更新期限をSKUごとに見える化。越境ECの販売準備を5分で無料診断できます。',
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
