@@ -1,5 +1,5 @@
-import { SalesLandingPro } from '@/components/SalesLandingPro';
+import { PublicLanding } from '@/components/PublicLanding';
 
 export default function Home() {
-  return <SalesLandingPro />;
+  return <PublicLanding />;
 }
