@@ -61,7 +61,7 @@ export function SalesLandingPro() {
       <header className={styles.nav}>
         <a className={styles.brand} href="#top"><span>Passport</span>OS</a>
         <nav className={styles.navLinks} aria-label="主要ナビゲーション">
-          <a href="#checklist">チェック表</a><a href="#check">無料診断</a><a href="#compare">比較</a><a href="#pricing">料金</a><a href="/about">About</a>
+          <a href="#checklist">チェック表</a><a href="#check">無料診断</a><a href="#compare">比較</a><a href="#pricing">料金</a><a href="/templates">返信テンプレ</a><a href="/about">About</a>
         </nav>
         <a className={styles.navCta} href="#check">5分で無料診断</a>
       </header>
@@ -100,7 +100,7 @@ export function SalesLandingPro() {
 
       <section className={styles.section} id="check">
         <div className={`${styles.container} ${styles.leadGrid}`}>
-          <div><span className={styles.lightBadge}>Free check</span><h2>まずは1商品だけ、販売準備の抜け漏れを無料で確認。</h2><p>送信内容はAPIへ送られ、環境変数を設定するとGitHub Issue保存とメール通知に対応します。管理画面は <a href="/admin">/admin</a> から確認できます。</p></div>
+          <div><span className={styles.lightBadge}>Free check</span><h2>まずは1商品だけ、販売準備の抜け漏れを無料で確認。</h2><p>送信内容はAPIへ送られ、環境変数を設定するとGitHub Issue保存とメール通知に対応します。管理画面は <a href="/admin">/admin</a> から確認できます。返信文面は <a href="/templates">無料診断の返信テンプレート</a> を利用できます。</p></div>
           <form className={`${styles.card} ${styles.form}`} onSubmit={submitLead}>
             <div className={styles.form2}><label className={styles.field}>お名前<input name="name" required /></label><label className={styles.field}>メールアドレス<input name="email" type="email" required /></label></div>
             <div className={styles.form2}><label className={styles.field}>会社名・屋号<input name="company" /></label><label className={styles.field}>SKU数<select name="skuCount" defaultValue="1-50"><option>1-50</option><option>51-250</option><option>251-1000</option><option>1000+</option></select></label></div>
@@ -119,7 +119,7 @@ export function SalesLandingPro() {
 
       <section className={styles.section} id="pricing"><div className={styles.container}><div className={styles.sectionHead}><span className={styles.lightBadge}>Pricing</span><h2>SKU数と市場数に応じて、自然に拡張できる料金設計。</h2><p>初期は相談導線で運用し、本番化時はStripe Billingへ接続する前提です。</p></div><div className={styles.pricing}>{plans.map(([name, price, desc, items, recommended]) => <article className={`${styles.price} ${recommended ? styles.recommended : ''}`} key={name}>{recommended && <span className={styles.recBadge}>おすすめ</span>}<h3>{name}</h3><strong>{price}<small>/月</small></strong><p>{desc}</p><ul>{items.map((item) => <li key={item}>{item}</li>)}</ul><a className={styles.primary} href="#check">このプランで相談</a></article>)}</div></div></section>
 
-      <footer className={styles.footer}><div className={styles.container}><a href="/about">About</a><a href="/privacy">Privacy</a><a href="/terms">Terms</a><a href="/admin">Admin</a></div></footer>
+      <footer className={styles.footer}><div className={styles.container}><a href="/about">About</a><a href="/privacy">Privacy</a><a href="/terms">Terms</a><a href="/templates">返信テンプレ</a><a href="/admin">Admin</a></div></footer>
       <div className={styles.sticky}><a href="#check">5分で無料診断</a></div>
     </main>
   );
