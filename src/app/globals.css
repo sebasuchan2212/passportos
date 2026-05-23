@@ -169,3 +169,44 @@ input:focus, select:focus, textarea:focus { border-color:var(--blue); box-shadow
   table { min-width:780px; }
   .splitSection, .leadSection, .pricing, .architecture { padding:38px 0; }
 }
+
+.hero h1 {
+  display: inline-block;
+  max-width: 920px;
+  font-size: clamp(52px, 7.6vw, 104px);
+  line-height: .96;
+  font-weight: 950;
+  letter-spacing: -.075em;
+  color: #ffffff;
+  text-shadow: 0 14px 42px rgba(0, 0, 0, .34), 0 0 34px rgba(13, 183, 215, .32);
+  position: relative;
+}
+
+.hero h1::after {
+  content: '';
+  display: block;
+  width: min(82%, 620px);
+  height: 10px;
+  margin-top: 18px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #8de8ff, #ffffff, rgba(141, 232, 255, .15));
+  box-shadow: 0 0 28px rgba(141, 232, 255, .55);
+}
+
+.hero .lead {
+  max-width: 820px;
+  font-size: clamp(17px, 1.6vw, 21px);
+}
+
+@media (max-width: 640px) {
+  .hero h1 {
+    font-size: clamp(44px, 13vw, 58px);
+    line-height: 1.02;
+    letter-spacing: -.065em;
+  }
+  .hero h1::after {
+    height: 7px;
+    width: 92%;
+    margin-top: 14px;
+  }
+}
