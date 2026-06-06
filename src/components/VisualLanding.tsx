@@ -1,7 +1,7 @@
 'use client';
 
 import { FormEvent, useState } from 'react';
-import styles from './VisualLanding.module.css';
+import styles from './VisualLandingFixed.module.css';
 
 const worries = [
   ['？', '海外販売したいけど、\n何から始めればいいか\n分からない'],
