@@ -4,24 +4,24 @@ import { FormEvent, useState } from 'react';
 import styles from './VisualLandingFixed.module.css';
 
 const worries = [
-  ['？', '海外販売したいけど、\n何から始めればいいか\n分からない'],
-  ['□', 'EU/UK向けの\nルールが難しい'],
-  ['▣', '必要書類や証跡が\nバラバラになっている'],
-  ['盾', '出品停止や\n審査落ちが不安'],
+  ['🌏', '海外販売したいけど、\n何から始めればいいか\n分からない'],
+  ['📘', 'EU/UK向けの\nルールが難しい'],
+  ['📁', '必要書類や証跡が\nバラバラになっている'],
+  ['🛡️', '出品停止や\n審査落ちが不安'],
 ];
 
 const features = [
-  ['⌕', '商品ごとに必要な\n準備を見える化', 'SKUごとに不足項目・\n優先度・期限を確認'],
-  ['書', '証跡や書類を\nまとめて管理', 'ラベル、技術文書、\n提出物を一元化'],
-  ['日', '期限切れや更新漏れ\nを防止', '重要な期限を\n一覧で把握'],
-  ['✓', '初心者でも\n次の行動が分かる', 'やるべきことを\n順番に表示'],
+  ['🔎', '商品ごとに必要な\n準備を見える化', 'SKUごとに不足項目・\n優先度・期限を確認'],
+  ['📂', '証跡や書類を\nまとめて管理', 'ラベル、技術文書、\n提出物を一元化'],
+  ['⏰', '期限切れや更新漏れ\nを防止', '重要な期限を\n一覧で把握'],
+  ['✅', '初心者でも\n次の行動が分かる', 'やるべきことを\n順番に表示'],
 ];
 
 const steps = [
-  ['1', '箱', '商品を登録'],
-  ['2', '地', '販売先の国・\nチャネルを選択'],
-  ['3', '表', '不足項目を\nチェック'],
-  ['4', '盾', '証跡と期限を\n管理'],
+  ['1', '📦', '商品を登録'],
+  ['2', '🌐', '販売先の国・\nチャネルを選択'],
+  ['3', '✅', '不足項目を\nチェック'],
+  ['4', '🗂️', '証跡と期限を\n管理'],
 ];
 
 const checklist = [
@@ -37,9 +37,24 @@ const pricing = [
   ['Scale', '¥198,000', '複数ブランド・支援会社向け', ['1,000 SKU', '10市場', '監査証跡', '承認フロー'], false],
 ] as const;
 
+type PlanName = typeof pricing[number][0];
+
 export function VisualLanding() {
   const [notice, setNotice] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState<PlanName>('Growth');
+
+  const scrollToSection = (id: string) => {
+    const target = document.getElementById(id);
+    if (!target) return;
+    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
+  const choosePlan = (plan: PlanName) => {
+    setSelectedPlan(plan);
+    setNotice(`${plan}プランを選択しました。無料診断フォームに反映済みです。`);
+    window.setTimeout(() => scrollToSection('diagnosis'), 80);
+  };
 
   const submitLead = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -50,14 +65,14 @@ export function VisualLanding() {
       const response = await fetch('/api/leads', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
+        body: JSON.stringify({ ...payload, selectedPlan }),
       });
       const result = await response.json() as { ok: boolean; error?: string; lead?: { priority?: string; score?: number } };
       if (!response.ok || !result.ok) {
         setNotice(result.error ?? '送信できませんでした。入力内容をご確認ください。');
         return;
       }
-      setNotice(`無料診断リクエストを受け付けました。優先度: ${result.lead?.priority ?? 'medium'} / スコア: ${result.lead?.score ?? '-'}`);
+      setNotice(`無料診断リクエストを受け付けました。選択プラン: ${selectedPlan} / 優先度: ${result.lead?.priority ?? 'medium'} / スコア: ${result.lead?.score ?? '-'}`);
       event.currentTarget.reset();
     } catch {
       setNotice('通信に失敗しました。時間をおいて再度お試しください。');
@@ -69,14 +84,14 @@ export function VisualLanding() {
   return (
     <main className={styles.page}>
       <header className={styles.header}>
-        <a className={styles.logo} href="#top"><span className={styles.logoMark} />PassportOS</a>
+        <button className={styles.logoButton} type="button" onClick={() => scrollToSection('top')}><span className={styles.logoMark} />PassportOS</button>
         <nav className={styles.nav} aria-label="主要ナビゲーション">
-          <a href="#features">機能</a>
-          <a href="#pricing">料金</a>
-          <a href="#flow">導入の流れ</a>
-          <a href="#diagnosis">無料診断</a>
+          <button type="button" onClick={() => scrollToSection('features')}>機能</button>
+          <button type="button" onClick={() => scrollToSection('pricing')}>料金</button>
+          <button type="button" onClick={() => scrollToSection('flow')}>導入の流れ</button>
+          <button type="button" onClick={() => scrollToSection('diagnosis')}>無料診断</button>
         </nav>
-        <a className={styles.headerCta} href="#diagnosis">無料診断を始める</a>
+        <button className={styles.headerCta} type="button" onClick={() => scrollToSection('diagnosis')}>無料診断を始める</button>
       </header>
 
       <section className={styles.hero} id="top">
@@ -90,8 +105,8 @@ export function VisualLanding() {
               <p className={styles.heroLead}>EU/UK販売に必要な準備・証跡・期限管理を、初心者でも分かりやすく整理。</p>
               <p className={styles.heroText}>PassportOSは、商品ごとに「何が足りないか」「何を先にやるべきか」を見える化する越境EC向けSaaSです。出品停止や準備漏れを防ぎ、安心して海外販売を進められます。</p>
               <div className={styles.heroActions}>
-                <a className={styles.primary} href="#diagnosis">○ 5分で無料診断</a>
-                <a className={styles.secondary} href="#pricing">料金を見る</a>
+                <button className={styles.primary} type="button" onClick={() => scrollToSection('diagnosis')}>5分で無料診断</button>
+                <button className={styles.secondary} type="button" onClick={() => scrollToSection('pricing')}>料金を見る</button>
               </div>
             </div>
             <DashboardMockup />
@@ -130,7 +145,20 @@ export function VisualLanding() {
         <div className={styles.container}>
           <h2 className={styles.centerTitle}>料金プラン</h2>
           <p className={styles.priceSub}>SKU数と市場数に応じて選べる、分かりやすい料金設定</p>
-          <div className={styles.priceGrid}>{pricing.map(([name, price, desc, items, recommended]) => <article className={`${styles.priceCard} ${recommended ? styles.recommended : ''}`} key={name}>{recommended && <span className={styles.recommendBadge}>おすすめ</span>}<h3>{name}</h3><strong>{price}<small> / 月</small></strong><p>{desc}</p><ul>{items.map(item => <li key={item}>✓ {item}</li>)}</ul></article>)}</div>
+          <div className={styles.priceGrid}>{pricing.map(([name, price, desc, items, recommended]) => {
+            const isSelected = selectedPlan === name;
+            return (
+              <article className={`${styles.priceCard} ${recommended ? styles.recommended : ''} ${isSelected ? styles.selectedPrice : ''}`} key={name}>
+                {recommended && <span className={styles.recommendBadge}>おすすめ</span>}
+                {isSelected && <span className={styles.selectedBadge}>選択中</span>}
+                <h3>{name}</h3>
+                <strong>{price}<small> / 月</small></strong>
+                <p>{desc}</p>
+                <ul>{items.map(item => <li key={item}>✓ {item}</li>)}</ul>
+                <button className={styles.planButton} type="button" onClick={() => choosePlan(name)}>{isSelected ? 'このプランで診断へ進む' : `${name}を選ぶ`}</button>
+              </article>
+            );
+          })}</div>
         </div>
       </section>
 
@@ -141,6 +169,7 @@ export function VisualLanding() {
             <div>
               <h2>まずは無料診断で、<br />今の準備状況を確認しませんか？</h2>
               <p>最初の一歩は、現状把握から。商品ごとの抜け漏れをシンプルに整理します。</p>
+              <div className={styles.selectedPlanBox}>選択中のプラン：<strong>{selectedPlan}</strong></div>
             </div>
             <form className={styles.quickForm} onSubmit={submitLead}>
               <input name="name" placeholder="お名前" required />
@@ -148,9 +177,10 @@ export function VisualLanding() {
               <input name="company" placeholder="会社名・屋号" />
               <input name="markets" placeholder="例：EU / Shopify" />
               <select name="skuCount" defaultValue="1-50"><option>1-50</option><option>51-250</option><option>251-1000</option><option>1000+</option></select>
+              <input name="selectedPlan" value={selectedPlan} readOnly />
               <textarea name="message" placeholder="相談内容" />
               {notice && <div className={styles.notice}>{notice}</div>}
-              <button type="submit" disabled={submitting}>{submitting ? '送信中...' : '無料診断を始める 〉'}</button>
+              <button type="submit" disabled={submitting}>{submitting ? '送信中...' : '無料診断を送信する'}</button>
             </form>
           </div>
         </div>
@@ -168,7 +198,7 @@ function DashboardMockup() {
     <div className={styles.dashboard} aria-label="PassportOS dashboard mockup">
       <aside className={styles.sidebar}>
         <div className={styles.sideLogo}><span />PassportOS</div>
-        {['ダッシュボード', '商品一覧', 'チェックリスト', '書類・証跡', '期限管理', 'チーム', '設定'].map((item, index) => <div className={`${styles.sideItem} ${index === 0 ? styles.activeSide : ''}`} key={item}>□ {item}</div>)}
+        {['ダッシュボード', '商品一覧', 'チェックリスト', '書類・証跡', '期限管理', 'チーム', '設定'].map((item, index) => <div className={`${styles.sideItem} ${index === 0 ? styles.activeSide : ''}`} key={item}>▸ {item}</div>)}
         <div className={styles.userMini}>株式会社サンプル<br />山田 太郎</div>
       </aside>
       <section className={styles.dashboardMain}>
